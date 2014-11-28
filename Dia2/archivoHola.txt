@@ -1,0 +1,2 @@
+Escribiendo en el archivo desde ipython
+Hola mundo
