@@ -1,25 +1,30 @@
-﻿import sys
+﻿#importamos las librerias que utiliza la aplicación
+import sys
 import math
 import time 
 
+#el siguiente coduigo es escencial para que el dialogCreateAlert funcione
 from android import Android
 droid = Android()
  
-mensaje1='Hola, me llamo Contador, y te dire cuanto te desplazas en 30 segundos'
+#Primera llamada de la aplicacion con el interprete de android
+mensaje1='Hola, me llamo Contador, y te dire cuanto te mueves en 30 segundos'
 droid.ttsSpeak(mensaje1)
 
-time.sleep(10)
+# tiempo de espera en segundos para ejecucion del siguiente codigo
+time.sleep(5)
 
-droid.dialogCreateAlert(
-    '¿Listo para iniciar?',
-    
-)
+#Mensaje de dialogo
+droid.dialogCreateAlert('Cuenta pasos', '¿Listo para iniciar?')
  
 droid.dialogSetPositiveButtonText('Si')
 droid.dialogSetNegativeButtonText('No')
  
 droid.dialogShow()
- 
+
+#dependiendo de la respuesta escogida en el dialogo será el resultado, si es no la opcion escogida se despide el interprete y 
+#se finaliza la aplicacion, si es si inicia la aplicacion para contar los pasos aproximados en 8 segundos
+
 response = droid.dialogGetResponse().result
 droid.dialogDismiss()
  
@@ -32,31 +37,33 @@ else:
 	mensaje3='A la cuenta de tres comienza a caminar'
 	droid.ttsSpeak(mensaje3)
 	time.sleep(3)
-	mensaje4='Uno'
-	droid.ttsSpeak(mensaje4)
+	droid.makeToast('Uno')
 	time.sleep(2)
-	mensaje5='Dos'
-	droid.ttsSpeak(mensaje5)
+	droid.makeToast('Dos')
 	time.sleep(2)
-	mensaje6='Tres'
-	droid.ttsSpeak(mensaje6)
+	droid.makeToast('Tres')
 
-	tiempo=0
-	final=30000
-	dt=100
-	
-	droid.startSensingTimed(2, dt)
+	# se inicializa el sensor del acelerometro con 100 milisegundos se toma de lecturas	
+	droid.startSensingTimed(2, 100)
+	# se almacenan los valores iniciales del acelerometro
     	start = droid.sensorsReadAccelerometer().result
-    	while tiempo <= final:
-        	
-        	datos = droid.sensorsReadAccelerometer().result
-        	
-        	time.sleep(dt/1000.0)
-        	tiempo += dt
-        
+	#se da un tiempo de 30 segundos para tomar los siguientes valores
+    	time.sleep(30)
+	#se toman los valores finales del acelerometro considerando que ya camino la persona o si no lo hizo
+        datos = droid.sensorsReadAccelerometer().result
+	#se termina el sensor del acelerometro
     	droid.stopSensing()
-    	mov = math.fabs((datos[0] + datos[1] + datos[2]) - (start[0] + start[1] + start[2]) / 30000)
-	
-	
-	mensaje8= 'Los pasos que diste son aproximadamente' + str(mov)
+	#se asigna a la variable mov, la diferencia entre los valores finales e iniciales seran los pasos que dio la persona
+	#la palabra reservada int sirve para tomar el valor entero de una fraccion
+	#esto: start[1] or 0, siginifica que si el valor almacenado en la posicion es nonetype se reconozca coo valor 0, con esto evitamos error de
+	#tipos de datos que no concuerden.
+	mov = (int(datos[0] or 0) + int(datos[1] or 0) + int(datos[2] or 0)) - (int(start[0] or 0) + int(start[1] or 0) + int(start[2] or 0))
+	#La suma se divide entre el total del tiempo
+	mov = mov / 30000
+	# se muestra con el interprete los pasos que dio la persona y acaba la aplicacion
+	droid.dialogCreateAlert('Cuenta pasos', 'Te moviste ' + str(mov))
+ 	droid.dialogSetPositiveButtonText('Aceptar')
+ 	droid.dialogShow()
+
+	mensaje8= 'Te moviste es ' + str(mov)
 	droid.ttsSpeak(mensaje8)
